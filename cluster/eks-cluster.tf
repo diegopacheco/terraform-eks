@@ -4,7 +4,6 @@
 #  * EC2 Security Group to allow networking traffic with EKS cluster
 #  * EKS Cluster
 #
-
 resource "aws_iam_role" "demo-cluster" {
   name = "terraform-eks-demo-cluster"
 
@@ -47,7 +46,7 @@ resource "aws_security_group" "demo-cluster" {
   }
 
   tags {
-    Name = "terraform-eks-demo"
+    Name = "${var.project}-${var.environment}-eks"
   }
 }
 
@@ -72,7 +71,7 @@ resource "aws_security_group_rule" "demo-cluster-ingress-workstation-https" {
 }
 
 resource "aws_eks_cluster" "demo" {
-  name     = "${var.cluster-name}"
+  name     = "${var.project}-${var.environment}-eks"
   role_arn = "${aws_iam_role.demo-cluster.arn}"
 
   vpc_config {

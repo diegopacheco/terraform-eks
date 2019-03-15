@@ -3,7 +3,7 @@
 #
 
 provider "aws" {
-  region = "us-west-2"
+  region     = "${var.aws-default-region}"
   version = "~> 1.24"
 }
 

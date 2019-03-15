@@ -6,9 +6,8 @@
 #  * AutoScaling Launch Configuration to configure worker instances
 #  * AutoScaling Group to launch worker instances
 #
-
 resource "aws_iam_role" "demo-node" {
-  name = "terraform-eks-demo-node"
+  name = "${var.project}-${var.environment}-eks-node"
 
   assume_role_policy = <<POLICY
 {
@@ -42,12 +41,12 @@ resource "aws_iam_role_policy_attachment" "demo-node-AmazonEC2ContainerRegistryR
 }
 
 resource "aws_iam_instance_profile" "demo-node" {
-  name = "terraform-eks-demo"
+  name = "${var.project}-${var.environment}-eks"
   role = "${aws_iam_role.demo-node.name}"
 }
 
 resource "aws_security_group" "demo-node" {
-  name        = "terraform-eks-demo-node"
+  name        = "${var.project}-${var.environment}-eks-node"
   description = "Security group for all nodes in the cluster"
   vpc_id      = "${aws_vpc.demo.id}"
 
@@ -60,8 +59,8 @@ resource "aws_security_group" "demo-node" {
 
   tags = "${
     map(
-     "Name", "terraform-eks-demo-node",
-     "kubernetes.io/cluster/${var.cluster-name}", "owned",
+     "Name", "${var.project}-${var.environment}-eks-node",
+     "kubernetes.io/cluster/${var.project}-${var.environment}-eks", "owned",
     )
   }"
 }
@@ -111,7 +110,7 @@ mkdir -p $CA_CERTIFICATE_DIRECTORY
 echo "${aws_eks_cluster.demo.certificate_authority.0.data}" | base64 -d >  $CA_CERTIFICATE_FILE_PATH
 INTERNAL_IP=$(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)
 sed -i s,MASTER_ENDPOINT,${aws_eks_cluster.demo.endpoint},g /var/lib/kubelet/kubeconfig
-sed -i s,CLUSTER_NAME,${var.cluster-name},g /var/lib/kubelet/kubeconfig
+sed -i s,CLUSTER_NAME,${var.project}-${var.environment}-eks,g /var/lib/kubelet/kubeconfig
 sed -i s,REGION,${data.aws_region.current.name},g /etc/systemd/system/kubelet.service
 sed -i s,MAX_PODS,20,g /etc/systemd/system/kubelet.service
 sed -i s,MASTER_ENDPOINT,${aws_eks_cluster.demo.endpoint},g /etc/systemd/system/kubelet.service
@@ -145,17 +144,17 @@ resource "aws_autoscaling_group" "demo" {
   launch_configuration = "${aws_launch_configuration.demo.id}"
   max_size             = 2
   min_size             = 1
-  name                 = "terraform-eks-demo"
+  name                 = "${var.project}-${var.environment}-eks"
   vpc_zone_identifier  = ["${aws_subnet.demo.*.id}"]
 
   tag {
     key                 = "Name"
-    value               = "terraform-eks-demo"
+    value               = "${var.project}-${var.environment}-ek"
     propagate_at_launch = true
   }
 
   tag {
-    key                 = "kubernetes.io/cluster/${var.cluster-name}"
+    key                 = "kubernetes.io/cluster/${var.project}-${var.environment}-eks"
     value               = "owned"
     propagate_at_launch = true
   }

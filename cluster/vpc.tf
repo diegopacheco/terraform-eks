@@ -5,14 +5,13 @@
 #  * Internet Gateway
 #  * Route Table
 #
-
 resource "aws_vpc" "demo" {
   cidr_block = "10.0.0.0/16"
 
   tags = "${
     map(
-     "Name", "terraform-eks-demo-node",
-     "kubernetes.io/cluster/${var.cluster-name}", "shared",
+     "Name", "${var.project}-${var.environment}-eks-node",
+     "kubernetes.io/cluster/${var.project}-${var.environment}-eks", "shared",
     )
   }"
 }
@@ -26,8 +25,8 @@ resource "aws_subnet" "demo" {
 
   tags = "${
     map(
-     "Name", "terraform-eks-demo-node",
-     "kubernetes.io/cluster/${var.cluster-name}", "shared",
+     "Name", "${var.project}-${var.environment}-eks-node",
+     "kubernetes.io/cluster/${var.project}-${var.environment}-eks", "shared",
     )
   }"
 }
@@ -36,7 +35,7 @@ resource "aws_internet_gateway" "demo" {
   vpc_id = "${aws_vpc.demo.id}"
 
   tags {
-    Name = "terraform-eks-demo"
+    Name = "${var.project}-${var.environment}-eks"
   }
 }
 
